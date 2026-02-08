@@ -6,7 +6,7 @@
 export const CARD_CONFIG = {
   // Recipient Information
   recipientName: "Quyên",
-  senderName: "Từ Chị Hằng ❤️",
+  senderName: "Hằng ❤️",
   
   // Farewell Message - The specific letter requested
   loveMessage: `Gửi Quyên,
