@@ -1,0 +1,896 @@
+Directory structure:
+└── kỷ-niệm-cho-quyên---farewell-card/
+    ├── README.md
+    ├── App.tsx
+    ├── config.ts
+    ├── index.html
+    ├── index.tsx
+    ├── metadata.json
+    ├── package.json
+    ├── tsconfig.json
+    ├── vite.config.ts
+    ├── .env.local
+    ├── components/
+    │   ├── AnniversaryCounter.tsx
+    │   ├── Clouds.tsx
+    │   ├── Envelope.tsx
+    │   ├── HeartParticles.tsx
+    │   └── MasonryGallery.tsx
+    ├── public/
+    │   └── images/
+    └── .dist/
+
+================================================
+File: README.md
+================================================
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/drive/1cYjtTlrl8cwxMgtfVTj6HMS7WQ27YtPC
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
+
+
+
+================================================
+File: App.tsx
+================================================
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Cloud, Pause, Play, RefreshCcw, Sparkles, Smile, Wind } from 'lucide-react';
+// Import trực tiếp từ CDN để đảm bảo không lỗi library
+import ReactPlayer from 'https://esm.sh/react-player@2.16.0/youtube'; 
+import { CARD_CONFIG } from './config';
+import Envelope from './components/Envelope';
+import SkyParticles from './components/HeartParticles';
+import MasonryGallery from './components/MasonryGallery';
+import Clouds from './components/Clouds';
+
+const App: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    // Kích hoạt nhạc ngay khi user click mở thiệp (đúng quy định của trình duyệt)
+    setIsMusicPlaying(true);
+    
+    setTimeout(() => {
+      setShowContent(true);
+    }, 1200);
+  };
+
+  const handleReset = () => {
+    setIsOpen(false);
+    setShowContent(false);
+    setIsMusicPlaying(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className={`min-h-screen relative flex flex-col items-center justify-center overflow-x-hidden ${CARD_CONFIG.colors.background}`}>
+      {/* Background Ambience */}
+      <Clouds />
+      <SkyParticles active={isOpen} />
+      
+      {/* YouTube Player - KHÔNG ĐỂ width=0px. Để ở vị trí khuất khỏi màn hình */}
+      <div style={{ 
+        position: 'fixed', 
+        top: '-1000px', 
+        left: '-1000px', 
+        opacity: 0,
+        pointerEvents: 'none',
+        zIndex: -1
+      }}>
+        <ReactPlayer
+          url={CARD_CONFIG.musicUrl}
+          playing={isMusicPlaying}
+          loop={true}
+          volume={0.8}
+          width="64px" 
+          height="64px"
+          playsinline={true} 
+          config={{
+            youtube: {
+              playerVars: { 
+                autoplay: 1, 
+                controls: 0,
+                modestbranding: 1,
+                rel: 0
+              }
+            }
+          }}
+          onReady={() => console.log("Youtube Player Ready")}
+          onError={(e) => console.error("Youtube Error:", e)}
+        />
+      </div>
+
+      <AnimatePresence mode="wait">
+        {!showContent ? (
+          <motion.div
+            key="envelope-view"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ duration: 1 }}
+            className="flex flex-col items-center z-20 px-4"
+          >
+            <Envelope isOpen={isOpen} onClick={handleOpen} />
+            
+            {!isOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1, repeat: Infinity, repeatType: "reverse", duration: 2 }}
+                className="mt-12 text-center"
+              >
+                <p className="text-sky-400 font-bold text-sm tracking-[0.3em] uppercase flex items-center gap-3">
+                  <Wind className="w-4 h-4" />
+                  {CARD_CONFIG.labels.tapToOpen}
+                  <Wind className="w-4 h-4" />
+                </p>
+              </motion.div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="revealed-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5 }}
+            className="w-full max-w-5xl px-6 py-16 z-10 flex flex-col items-center space-y-24"
+          >
+            {/* Header */}
+            <header className="text-center space-y-8">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                className="inline-block p-6 bg-white rounded-full shadow-md text-sky-400 mb-2"
+              >
+                <Cloud className="w-10 h-10" />
+              </motion.div>
+              <h1 className="text-5xl md:text-7xl font-romantic font-bold text-sky-600">
+                Gửi {CARD_CONFIG.recipientName},
+              </h1>
+              <p className="text-slate-400 italic max-w-lg mx-auto text-lg font-medium">
+                "{CARD_CONFIG.shortQuote}"
+              </p>
+            </header>
+
+            {/* Bức thư */}
+            <section className="w-full max-w-3xl bg-white/70 backdrop-blur-lg p-12 md:p-20 rounded-[60px] shadow-2xl border border-sky-100 relative">
+               <div className="absolute top-0 right-0 p-12 text-sky-100 opacity-20">
+                 <Smile className="w-32 h-32 rotate-12" />
+               </div>
+               
+               <div className="relative z-10 space-y-8">
+                 {CARD_CONFIG.loveMessage.split('\n\n').map((paragraph, i) => (
+                   <motion.p 
+                     key={i}
+                     initial={{ opacity: 0, y: 15 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     viewport={{ once: true }}
+                     transition={{ duration: 1, delay: i * 0.2 }}
+                     className="text-xl md:text-2xl leading-relaxed text-slate-700 font-serif italic font-medium whitespace-pre-line text-justify md:text-left"
+                   >
+                     {paragraph}
+                   </motion.p>
+                 ))}
+                 
+                 <motion.div 
+                   initial={{ opacity: 0 }}
+                   whileInView={{ opacity: 1 }}
+                   viewport={{ once: true }}
+                   transition={{ delay: 1.2 }}
+                   className="mt-16 text-right border-t border-sky-100 pt-10"
+                 >
+                   <p className="font-romantic text-4xl text-sky-500 font-bold">
+                     {CARD_CONFIG.senderName}
+                   </p>
+                 </motion.div>
+               </div>
+            </section>
+
+            {/* Gallery Section */}
+            <section className="w-full space-y-12">
+              <div className="flex flex-col items-center gap-4 justify-center">
+                <h2 className="text-2xl md:text-4xl font-romantic font-bold text-sky-400">
+                  {CARD_CONFIG.labels.galleryTitle}
+                </h2>
+                <div className="h-1 w-24 bg-sky-200 rounded-full" />
+              </div>
+              
+              <MasonryGallery images={CARD_CONFIG.images} />
+            </section>
+
+            {/* Controls */}
+            <footer className="flex flex-col items-center gap-10 py-16">
+              <div className="flex items-center gap-8">
+                <button
+                  onClick={() => setIsMusicPlaying(!isMusicPlaying)}
+                  className="p-6 bg-white rounded-full shadow-lg text-sky-500 hover:scale-110 hover:shadow-xl transition-all active:scale-95 border border-sky-50"
+                  title={isMusicPlaying ? CARD_CONFIG.labels.pause : CARD_CONFIG.labels.play}
+                >
+                  {isMusicPlaying ? <Pause size={24} /> : <Play size={24} />}
+                </button>
+                
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-3 px-10 py-6 bg-white rounded-full shadow-lg text-slate-500 hover:bg-sky-50 transition-all active:scale-95 border border-slate-100"
+                >
+                  <RefreshCcw className="w-4 h-4" />
+                  <span className="font-bold text-xs uppercase tracking-[0.2em]">{CARD_CONFIG.labels.replay}</span>
+                </button>
+              </div>
+
+              <div className="text-sky-300 text-sm font-semibold flex items-center gap-3">
+                <span>Trân trọng những khoảnh khắc</span>
+                <Sparkles className="w-4 h-4" />
+              </div>
+            </footer>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Music Indicator */}
+      {showContent && isMusicPlaying && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 md:bottom-auto md:top-8 md:right-8 md:left-auto z-50 p-4 bg-white/90 backdrop-blur-sm rounded-full shadow-xl border border-sky-100">
+           <div className="flex gap-1.5 items-end h-6">
+             {[0.1, 0.4, 0.2, 0.5, 0.3].map((d, i) => (
+               <motion.div
+                 key={i}
+                 animate={{ height: ["20%", "100%", "20%"] }}
+                 transition={{ repeat: Infinity, duration: 0.6 + d, ease: "easeInOut" }}
+                 className="w-1.5 bg-sky-400 rounded-full"
+               />
+             ))}
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
+
+
+================================================
+File: config.ts
+================================================
+
+/**
+ * FAREWELL CARD CONFIGURATION
+ * Edit these values to personalize the digital card.
+ */
+export const CARD_CONFIG = {
+  // Recipient Information
+  recipientName: "Quyên",
+  senderName: "Từ Chị ❤️",
+  
+  // Farewell Message - The specific letter requested
+  loveMessage: `Gửi Quyên,
+Dù thời gian chúng ta quen biết và làm việc cùng nhau không quá dài, nhưng cũng đủ để để lại trong chị nhiều điều đáng nhớ.
+Nhớ ngày đầu em bước vào FT, nhìn style lạnh lùng của em, với tính cách của chị lúc đó, chị đã nghĩ chắc sẽ rất khó để tụi mình trở thành bạn. Chị cũng không nhớ chính xác là mình bắt đầu nói chuyện với nhau từ khi nào nữa. Chỉ biết rằng, càng tiếp xúc, chị càng quý con người của em — bởi năng lượng tích cực mà em mang lại, bởi sự thẳng tính và cá tính có phần mạnh mẽ rất riêng của em. Đôi lúc, trong một vài hoàn cảnh, chị cũng không kiểm soát được lời nói của mình, có thể khiến em hiểu lầm hoặc không vui. Nhưng không sao, mọi chuyện rồi cũng ổn cả rồi kk. Và đến hôm nay, tụi mình vẫn vui vẻ với nhau như vậy.
+Bên cạnh vẻ mạnh mẽ bên ngoài, chị biết em là một cô bé rất yếu đuối. Nhất là qua lần em chia sẻ về việc ba em ở trong khu tâm bão và bị ảnh hưởng nặng. Em lo lắng vì không thể liên lạc được với ba, lo rằng ba sẽ không qua khỏi. Khi thấy hình ảnh em khóc, biết hai cha con đã phải hủy chuyến du lịch. Nghe đoạn voice của em và đọc những tin nhắn ba gửi cho em, nước mắt chị cũng đã tuôn ra theo lúc nào không hay. Chị thực sự cảm thấy thương hai cha con vô cùng. 
+Chị biết hoàn cảnh của em không được trọn vẹn và hạnh phúc như nhiều bạn khác. Mẹ thương em, mẹ nghiêm khắc, nhưng có lẽ chưa đúng cách và cũng không thật sự phù hợp với tính cách của em, nên hai mẹ con đôi khi khó có thể nói chuyện với nhau một cách hòa hợp để hiểu nhau hơn. Dù vậy, chị mong rằng khi có chuyện gì, em hãy cố gắng ngồi lại, nói chuyện với mẹ thật nhẹ nhàng để cả hai có thể hiểu và cảm thông cho nhau nhiều hơn. Để sau này, em sẽ không phải hối tiếc vì những điều chưa kịp nói. Còn với ba, em hãy thay em gái tâm sự và trò chuyện cùng ba nhiều hơn. Nếu có thời gian, thỉnh thoảng em hãy về thăm ba nhé.
+Cảm ơn em đã mang năng lượng tích cực, những tiếng cười nơi công sở đã khiến quãng thời gian làm việc của chị trở nên đáng nhớ.
+Chúc em thật nhiều sức khỏe, luôn giữ được năng lượng tích cực này và gặt hái nhiều thành công trên chặng đường sắp tới. Và sớm kiếm được người để em đủ tin tưởng dựa dẫm và có quyền yếu đuối trước họ. Dù chia tay FT nhưng sẽ không chia tay tình bạn. Hy vọng trong tương lai, chúng ta vẫn sẽ có dịp gặp lại nhau.
+`,
+  
+  shortQuote: "Mỗi cuộc gặp gỡ đều là một nhân duyên tốt đẹp.",
+  
+  // Media URLs - 30 images with varying aspect ratios
+  // images: Array.from({ length: 30 }, (_, i) => {
+  //   const width = 600;
+  //   const height = [400, 600, 800, 900, 1000][i % 5];
+  //   return `https://picsum.photos/seed/${i + 100}/${width}/${height}`;
+  // }),
+  images: Array.from({ length: 23 }, (_, i) => `/images/${i + 1}.jpg`),
+  
+  // Background Music URL (MP3) - Calm piano/instrumental
+  musicUrl: "https://www.youtube.com/watch?v=kUiaBpp_NSw",
+  
+  colors: {
+    background: "bg-sky-50",
+    accent: "text-sky-600",
+    primary: "bg-sky-400",
+    secondary: "bg-blue-50"
+  },
+  
+  labels: {
+    tapToOpen: "Nhấn để mở thiệp 💙",
+    replay: "Xem lại từ đầu",
+    pause: "Tạm dừng nhạc",
+    play: "Phát nhạc",
+    galleryTitle: "Kỷ niệm của tụi mình"
+  }
+};
+
+
+
+================================================
+File: index.html
+================================================
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Quyên - Một lời tạm biệt trọn vẹn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        .font-romantic {
+            font-family: 'Dancing Script', cursive;
+        }
+        .font-serif {
+            font-family: 'Lora', serif!important;
+            font-variant-ligatures: none;
+            text-rendering: optimizeLegibility;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f9ff;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bae6fd;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7dd3fc;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.33.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-player": "https://esm.sh/react-player@^2.16.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-sky-50 text-slate-800">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
+
+
+
+================================================
+File: index.tsx
+================================================
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+
+================================================
+File: metadata.json
+================================================
+
+{
+  "name": "Kỷ niệm cho Quyên - Farewell Card",
+  "description": "Một tấm thiệp nhỏ lưu giữ những kỷ niệm và lời chúc chân thành dành cho Quyên. Một hành trình khép lại, những kỷ niệm còn mãi.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
+
+
+
+================================================
+File: package.json
+================================================
+{
+  "name": "ká»·-niá»‡m-cho-quyÃªn---farewell-card",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "framer-motion": "^12.33.0",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-player": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}
+
+
+
+================================================
+File: tsconfig.json
+================================================
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
+}
+
+
+================================================
+File: vite.config.ts
+================================================
+import path from 'path';
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, '.', '');
+    return {
+      server: {
+        port: 3000,
+        host: '0.0.0.0',
+      },
+      plugins: [react()],
+      define: {
+        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      },
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, '.'),
+        }
+      }
+    };
+});
+
+
+
+================================================
+File: .env.local
+================================================
+GEMINI_API_KEY=PLACEHOLDER_API_KEY
+
+
+
+================================================
+File: components/AnniversaryCounter.tsx
+================================================
+
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+
+interface AnniversaryCounterProps {
+  date: string;
+  label: string;
+}
+
+const AnniversaryCounter: React.FC<AnniversaryCounterProps> = ({ date, label }) => {
+  const [days, setDays] = useState(0);
+
+  useEffect(() => {
+    const calculateDays = () => {
+      const anniversary = new Date(date);
+      const today = new Date();
+      const diffTime = Math.abs(today.getTime() - anniversary.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDays(diffDays);
+    };
+
+    calculateDays();
+    const timer = setInterval(calculateDays, 1000 * 60 * 60); 
+    return () => clearInterval(timer);
+  }, [date]);
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.4, type: "spring" }}
+        className="bg-white/80 backdrop-blur-sm px-10 py-8 rounded-[32px] shadow-xl border border-sky-100 flex flex-col items-center"
+      >
+        <span className="text-5xl md:text-7xl font-bold text-sky-500 font-romantic">
+          {days}
+        </span>
+        <span className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-3">
+          {label}
+        </span>
+      </motion.div>
+    </div>
+  );
+};
+
+export default AnniversaryCounter;
+
+
+
+================================================
+File: components/Clouds.tsx
+================================================
+
+import React from 'react';
+import { motion } from 'framer-motion';
+
+const CloudShape = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 60" className={className} fill="currentColor">
+    <path d="M20,40 Q20,20 40,20 Q45,10 55,10 Q70,10 75,25 Q95,25 95,45 Q95,60 75,60 L25,60 Q5,60 5,45 Q5,35 20,40" />
+  </svg>
+);
+
+const Clouds: React.FC = () => {
+  // Generate a fixed set of cloud configurations for a consistent but varied look
+  const clouds = [
+    { id: 1, size: 120, top: '10%', duration: 45, delay: 0, opacity: 0.4 },
+    { id: 2, size: 180, top: '25%', duration: 60, delay: -10, opacity: 0.3 },
+    { id: 3, size: 100, top: '45%', duration: 35, delay: -20, opacity: 0.5 },
+    { id: 4, size: 220, top: '65%', duration: 80, delay: -5, opacity: 0.2 },
+    { id: 5, size: 150, top: '80%', duration: 50, delay: -15, opacity: 0.4 },
+    { id: 6, size: 90, top: '15%', duration: 40, delay: -30, opacity: 0.3 },
+  ];
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {clouds.map((cloud) => (
+        <motion.div
+          key={cloud.id}
+          initial={{ x: '-20vw', opacity: 0 }}
+          animate={{ 
+            x: '110vw', 
+            opacity: [0, cloud.opacity, cloud.opacity, 0] 
+          }}
+          transition={{
+            duration: cloud.duration,
+            repeat: Infinity,
+            delay: cloud.delay,
+            ease: "linear",
+          }}
+          style={{
+            position: 'absolute',
+            top: cloud.top,
+            width: cloud.size,
+            color: 'white',
+          }}
+        >
+          <CloudShape className="w-full h-auto drop-shadow-md" />
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+export default Clouds;
+
+
+
+================================================
+File: components/Envelope.tsx
+================================================
+
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Sparkles, Star } from 'lucide-react';
+
+interface EnvelopeProps {
+  isOpen: boolean;
+  onClick: () => void;
+}
+
+const Envelope: React.FC<EnvelopeProps> = ({ isOpen, onClick }) => {
+  return (
+    <div 
+      className="relative cursor-pointer group"
+      onClick={!isOpen ? onClick : undefined}
+    >
+      {/* 3D Envelope Wrapper */}
+      <div className={`relative w-72 h-48 transition-all duration-1000 transform-gpu ${isOpen ? 'scale-110' : 'hover:scale-105'}`}>
+        
+        {/* Envelope Body (Back) */}
+        <div className="absolute inset-0 bg-sky-200 shadow-xl rounded-sm"></div>
+
+        {/* Paper Inside */}
+        <motion.div 
+          initial={{ y: 0 }}
+          animate={isOpen ? { y: -60 } : { y: 0 }}
+          transition={{ delay: 0.5, duration: 1.2, ease: "easeOut" }}
+          className="absolute inset-x-4 top-4 bottom-4 bg-white rounded-sm shadow-inner p-4 flex flex-col items-center justify-center text-center"
+        >
+          <div className="w-12 h-1 bg-sky-50 mb-2"></div>
+          <div className="w-20 h-1 bg-sky-50 mb-2"></div>
+          <div className="w-16 h-1 bg-sky-50"></div>
+          <Sparkles className="text-sky-400 mt-4 animate-pulse" size={20} />
+        </motion.div>
+
+        {/* Front Flaps */}
+        {/* Left Flap */}
+        <div 
+          className="absolute inset-0 z-20"
+          style={{
+            clipPath: 'polygon(0 0, 0 100%, 50% 50%)',
+            background: '#bae6fd' // Sky 200
+          }}
+        ></div>
+        {/* Right Flap */}
+        <div 
+          className="absolute inset-0 z-20"
+          style={{
+            clipPath: 'polygon(100% 0, 100% 100%, 50% 50%)',
+            background: '#bae6fd' // Sky 200
+          }}
+        ></div>
+        {/* Bottom Flap */}
+        <div 
+          className="absolute inset-0 z-20"
+          style={{
+            clipPath: 'polygon(0 100%, 100% 100%, 50% 50%)',
+            background: '#7dd3fc' // Sky 300
+          }}
+        ></div>
+
+        {/* Top Flap (Animating) */}
+        <motion.div 
+          initial={{ rotateX: 0 }}
+          animate={isOpen ? { rotateX: 180, zIndex: 0 } : { rotateX: 0, zIndex: 30 }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+          className="absolute inset-0 origin-top"
+          style={{
+            clipPath: 'polygon(0 0, 100% 0, 50% 50%)',
+            background: isOpen ? '#e0f2fe' : '#7dd3fc', // Sky 100 vs 300
+            backfaceVisibility: 'hidden'
+          }}
+        ></motion.div>
+
+        {/* Wax Seal / Button */}
+        {!isOpen && (
+          <motion.div 
+            whileHover={{ scale: 1.2 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 bg-sky-500 w-12 h-12 rounded-full shadow-lg flex items-center justify-center border-4 border-sky-100"
+          >
+            <Star className="text-white w-6 h-6" fill="currentColor" />
+          </motion.div>
+        )}
+      </div>
+      
+      {/* Subtle floating effect when not open */}
+      {!isOpen && (
+        <motion.div
+          animate={{ y: [0, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+          className="absolute -inset-4 border-2 border-sky-100 rounded-lg -z-10 opacity-50"
+        ></motion.div>
+      )}
+    </div>
+  );
+};
+
+export default Envelope;
+
+
+
+================================================
+File: components/HeartParticles.tsx
+================================================
+
+import React, { useEffect, useRef } from 'react';
+
+interface SkyParticlesProps {
+  active: boolean;
+}
+
+const SkyParticles: React.FC<SkyParticlesProps> = ({ active }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let particles: Particle[] = [];
+
+    class Particle {
+      x: number;
+      y: number;
+      size: number;
+      speedY: number;
+      speedX: number;
+      opacity: number;
+      color: string;
+
+      constructor() {
+        this.x = Math.random() * canvas!.width;
+        this.y = canvas!.height + 10;
+        this.size = Math.random() * 4 + 2;
+        this.speedY = Math.random() * 0.8 + 0.2;
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.opacity = Math.random() * 0.4 + 0.1;
+        const colors = ['#bae6fd', '#e0f2fe', '#f0f9ff', '#ffffff'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+        if (this.y < -20) {
+          this.y = canvas!.height + 10;
+          this.x = Math.random() * canvas!.width;
+        }
+      }
+
+      draw() {
+        if (!ctx) return;
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = this.color;
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const init = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      particles = [];
+      const particleCount = active ? 60 : 25;
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    init();
+    animate();
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [active]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="fixed inset-0 pointer-events-none z-0"
+    />
+  );
+};
+
+export default SkyParticles;
+
+
+
+================================================
+File: components/MasonryGallery.tsx
+================================================
+
+import React from 'react';
+import { motion } from 'framer-motion';
+
+interface MasonryGalleryProps {
+  images: string[];
+}
+
+const MasonryGallery: React.FC<MasonryGalleryProps> = ({ images }) => {
+  return (
+    <div className="w-full">
+      <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+        {images.map((src, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, delay: (index % 6) * 0.1 }}
+            className="break-inside-avoid"
+          >
+            <div className="relative group overflow-hidden rounded-3xl shadow-sm border border-sky-100/50 hover:shadow-xl transition-all duration-500">
+              <img
+                src={src}
+                alt={`Ká»· niá»‡m ${index + 1}`}
+                loading="lazy"
+                className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-sky-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default MasonryGallery;
+
+
+
+

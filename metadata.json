@@ -1,0 +1,8 @@
+
+{
+  "name": "Kỷ niệm cho Quyên - Farewell Card",
+  "description": "Một tấm thiệp nhỏ lưu giữ những kỷ niệm và lời chúc chân thành dành cho Quyên. Một hành trình khép lại, những kỷ niệm còn mãi.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
